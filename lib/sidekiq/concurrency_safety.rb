@@ -13,7 +13,7 @@ module Sidekiq
         raise AlreadyRunningError unless r.set(redis_key, 1, ex: final_ttl, nx: true)
 
         begin
-          super(**args, timeout_key: redis_key)
+          super
         ensure
           r.del(redis_key)
         end

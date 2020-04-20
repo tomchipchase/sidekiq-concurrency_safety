@@ -10,10 +10,10 @@ module Sidekiq
       redis_key = key_generator
 
       redis_pool.with do |r|
-        raise AlreadyRunningError unless r.set(redis_key, 1, ex: 25_000, nx: true)
+        raise AlreadyRunningError unless r.set(redis_key, 1, ex: final_ttl, nx: true)
 
         begin
-          super
+          super(**args, timeout_key: redis_key)
         ensure
           r.del(redis_key)
         end
@@ -30,6 +30,10 @@ module Sidekiq
 
     def final_key
       concurrency_key_exists? ? concurrency_key : args.map(&:to_s)
+    end
+
+    def final_ttl
+      methods.include?(:ttl) ? ttl : 25_000
     end
 
     def concurrency_key_exists?
